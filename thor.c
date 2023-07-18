@@ -136,6 +136,7 @@ void editorSetStatusMessage(const char *fmt, ...);
 void editorRefreshScreen();
 char *editorPrompt(char *prompt, void (*callback)(char *, int));
 void editorMoveCursor(int key);
+void editorDelRow(int at);
 
 /*** TERMINAL ***/
 
@@ -481,10 +482,14 @@ void editorYankRow(int at, int lines) {
     }
     E.cprow[0].lines = lines;
     editorSetStatusMessage("Yanked %d lines", lines);
-//    E.cprow[0].size = E.row[at].size;
-//    E.cprow[0].chars = malloc(E.row[at].size);
-//    memcpy(E.cprow[0].chars, E.row[at].chars, E.row[at].size);
+}
 
+void editorDelYankRow(int at, int lines) {
+    editorYankRow(at, lines);
+    
+    for(int i = 0; i < lines; i++) {
+        editorDelRow(at);
+    }  
 }
 
 void editorPasteRows() {
@@ -1085,9 +1090,10 @@ void editorYankPrompt(int at) {
     char *clines = editorPrompt("Yanking: %s", NULL);
     int lines;
 
-    if(clines == NULL) lines = 1;
-    else if(clines[0] == 'y') lines = 1;
-    else {
+    if(clines[0] == 'y') {
+        lines = 1;
+        editorYankRow(at, lines);
+    } else {
         int is_number = 1;
         int comlen = strlen(clines);
 
@@ -1098,9 +1104,32 @@ void editorYankPrompt(int at) {
         }
         if(is_number == 1) {
             lines = atoi(clines);
+            editorYankRow(at, lines);
         }
     }
-    editorYankRow(at, lines);
+}
+
+void editorDelPrompt(int at) {    
+    char *clines = editorPrompt("Deleting: %s", NULL);
+    int lines;
+
+    if(clines[0] == 'd') {
+        lines = 1;
+        editorDelYankRow(at, lines);
+    } else {
+        int is_number = 1;
+        int comlen = strlen(clines);
+
+        for(int i = 0; i < comlen; i++) {
+            if(!isdigit(clines[i])) {
+                is_number = 0;
+            }
+        }
+        if(is_number == 1) {
+            lines = atoi(clines);
+            editorDelYankRow(at, lines);
+        }
+    }
 }
 
 void editorChangeMode(int mode) {
@@ -1261,9 +1290,15 @@ void editorProcessKeypress() {
                 if(E.cx > 0) editorMoveCursor(ARROW_LEFT);
                 editorChangeMode(INSERT);
                 break;
+
+            case 'd':
+                editorDelPrompt(E.cy);
+                break;
+
             case 'y':
                 editorYankPrompt(E.cy);
                 break;
+
             case 'p':
                 editorPasteRows();
                 break;
