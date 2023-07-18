@@ -81,6 +81,12 @@ typedef struct erow {
     int hl_open_comment;
 } erow;
 
+typedef struct copyrow {
+    int lines;
+    int size;
+    char *chars;
+} copyrow;
+
 struct editorConfig {
     int cx, cy;
     int rx;
@@ -91,6 +97,7 @@ struct editorConfig {
     int screencols;
     int numrows;
     erow *row;
+    copyrow *cprow;
     int mode;
     int dirty;
     char *filename;
@@ -128,7 +135,7 @@ struct editorSyntax HLDB[] = {
 void editorSetStatusMessage(const char *fmt, ...);
 void editorRefreshScreen();
 char *editorPrompt(char *prompt, void (*callback)(char *, int));
-
+void editorMoveCursor(int key);
 
 /*** TERMINAL ***/
 
@@ -462,6 +469,35 @@ void editorInsertRow(int at, char *s, size_t len) {
 
     E.numrows++;
     E.dirty++;
+}
+
+void editorYankRow(int at, int lines) {
+    E.cprow = realloc(E.cprow, sizeof(copyrow) * lines);
+
+    for(int i = 0; i < lines; i++) {
+        E.cprow[i].size = E.row[at + i].size;
+        E.cprow[i].chars = malloc(E.row[at + i].size);
+        memcpy(E.cprow[i].chars, E.row[at + i].chars, E.row[at + i].size);
+    }
+    E.cprow[0].lines = lines;
+    editorSetStatusMessage("Yanked %d lines", lines);
+//    E.cprow[0].size = E.row[at].size;
+//    E.cprow[0].chars = malloc(E.row[at].size);
+//    memcpy(E.cprow[0].chars, E.row[at].chars, E.row[at].size);
+
+}
+
+void editorPasteRows() {
+    if(E.cprow == NULL) editorSetStatusMessage("Nothing in Yank Buffer");
+    else {
+        for(int i = 0; i < E.cprow[0].lines; i++) {
+            editorInsertRow(E.cy + 1 + i, E.cprow[i].chars, E.cprow[i].size);
+        }
+        for(int i = 0; i < E.cprow[0].lines; i++) {
+            editorMoveCursor(ARROW_DOWN);
+        }
+        editorSetStatusMessage("Pasted %d lines", E.cprow[0].lines);
+    }
 }
 
 void editorFreeRow(erow *row) {
@@ -1045,9 +1081,31 @@ void editorCommand() {
     }
 }
 
+void editorYankPrompt(int at) {
+    char *clines = editorPrompt("Yanking: %s", NULL);
+    int lines;
+
+    if(clines == NULL) lines = 1;
+    else if(clines[0] == 'y') lines = 1;
+    else {
+        int is_number = 1;
+        int comlen = strlen(clines);
+
+        for(int i = 0; i < comlen; i++) {
+            if(!isdigit(clines[i])) {
+                is_number = 0;
+            }
+        }
+        if(is_number == 1) {
+            lines = atoi(clines);
+        }
+    }
+    editorYankRow(at, lines);
+}
+
 void editorChangeMode(int mode) {
     if(mode == INSERT)
-        editorSetStatusMessage("-- INSERT --");
+        editorSetStatusMessage("-- INSERT MODE --");
     else 
         editorSetStatusMessage("");
 
@@ -1058,6 +1116,7 @@ void editorProcessKeypress() {
     int c = editorReadKey();
 
     if(E.mode == INSERT) {
+        editorSetStatusMessage("-- INSERT MODE --");
         switch(c) {
            case '\r':
                 editorInsertNewline();
@@ -1202,6 +1261,12 @@ void editorProcessKeypress() {
                 if(E.cx > 0) editorMoveCursor(ARROW_LEFT);
                 editorChangeMode(INSERT);
                 break;
+            case 'y':
+                editorYankPrompt(E.cy);
+                break;
+            case 'p':
+                editorPasteRows();
+                break;
         }
     }
 }
@@ -1217,6 +1282,7 @@ void initEditor() {
     E.coloff = 0;
     E.numrows = 0;
     E.row = NULL;
+    E.cprow = NULL;
     E.dirty = 0;
     E.mode = COMMAND;
     E.filename = NULL;
