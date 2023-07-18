@@ -1054,10 +1054,9 @@ void editorChangeMode(int mode) {
     E.mode = mode; 
 }
 
-void editorProcessKeypress() {
-    static int quit_times = THOR_QUIT_TIMES;
-
+void editorProcessKeypress() {    
     int c = editorReadKey();
+
     if(E.mode == INSERT) {
         switch(c) {
            case '\r':
@@ -1153,18 +1152,6 @@ void editorProcessKeypress() {
         }
     } else if(E.mode == COMMAND) {
         switch(c) {
-
-            case CTRL_KEY('q'):
-                if(E.dirty && quit_times > 0) {
-                    editorSetStatusMessage("Unsaved changes detected. Ctrl-Q %d more times to quit", quit_times);
-                    quit_times--;
-                    return;
-                }
-                write(STDOUT_FILENO, "\x1b[2J", 4);
-                write(STDOUT_FILENO, "\x1b[H", 3);
-
-                exit(0);
-                break;
 
             case DEL_KEY:
                 editorMoveCursor(ARROW_RIGHT);
