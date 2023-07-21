@@ -21,7 +21,6 @@
 /*** DEFINES ***/
 
 #define THOR_VERSION "0.1.1"
-#define THOR_VERSION "0.1.1"
 #define THOR_TAB_STOP 8
 #define THOR_QUIT_TIMES 3
 
@@ -35,6 +34,10 @@ enum editorKey {
     ARROW_RIGHT,
     ARROW_UP,
     ARROW_DOWN,
+    S_ARROW_LEFT,
+    S_ARROW_DOWN,
+    S_ARROW_RIGHT,
+    S_ARROW_UP,
     DEL_KEY,
     HOME_KEY,
     END_KEY,
@@ -191,6 +194,7 @@ int editorReadKey() {
     while ((nread = read(STDIN_FILENO, &c, 1)) != 1) {
         if(nread == -1 && errno != EAGAIN) die("read");
     }
+
     
     if(c == '\x1b') {
         char seq[3];
@@ -198,6 +202,7 @@ int editorReadKey() {
         if(read(STDIN_FILENO, &seq[0], 1) != 1) return '\x1b';
         if(read(STDIN_FILENO, &seq[1], 1) != 1) return '\x1b';
 
+                  
         if(seq[0] == '[') {
             if(seq[1] >= '0' && seq[1] <= '9') {
                 if(read(STDIN_FILENO, &seq[2], 1) != 1) return '\x1b';
@@ -507,11 +512,11 @@ void editorYankRow(int at, int lines) {
 
 void editorDelYankRow(int at, int lines) {
     editorYankRow(at, lines);
-    editorSetStatusMessage("Deleted %s lines", lines);    
 
     for(int i = 0; i < lines; i++) {
         editorDelRow(at);
     }  
+    editorSetStatusMessage("Deleted %d lines", lines);
 }
 
 void editorPasteRows() {
@@ -813,6 +818,11 @@ void editorScroll() {
 }
 
 void editorDrawRows(struct abuf *ab) {
+    if(E.mode != INSERT)
+        abAppend(ab, "\x1b[1 q", 5);    
+    else 
+        abAppend(ab, "\x1b[5 q", 5);
+
     int y;
     for(y = 0; y < E.screenrows; y++) {
         int filerow = y + E.rowoff;
@@ -1323,11 +1333,22 @@ void editorProcessKeypress() {
                         editorMoveCursor(c == PAGE_UP ? ARROW_UP : ARROW_DOWN);
                 }
                 break;
+            
 
             case ARROW_LEFT:
             case ARROW_RIGHT:
             case ARROW_UP:
             case ARROW_DOWN:
+                editorMoveCursor(c);
+                break;
+
+            case S_ARROW_LEFT:
+            case S_ARROW_RIGHT:
+            case S_ARROW_UP:
+            case S_ARROW_DOWN:
+                editorMoveCursor(c);
+                editorMoveCursor(c);
+                editorMoveCursor(c);
                 editorMoveCursor(c);
                 break;
 
