@@ -21,12 +21,15 @@
 /*** DEFINES ***/
 
 #define THOR_VERSION "0.1.1"
+#define THOR_VERSION "0.1.1"
 #define THOR_TAB_STOP 8
 #define THOR_QUIT_TIMES 3
 
 #define CTRL_KEY(k) ((k) & 0x1f) 
 
 enum editorKey {
+    SCROLL_UP = 25,
+    SCROLL_DOWN = 5,
     SCROLL_UP = 25,
     SCROLL_DOWN = 5,
     BACKSPACE = 127,
@@ -124,6 +127,10 @@ char *C_HL_keywords[] = {
 char *SHELL_HL_extensions[] = { ".sh", NULL};
 char *SHELL_HL_keywords[] = {"if", "fi", "read", "echo", "for", "while", "do", "done", "elif", NULL};
 
+
+char *SHELL_HL_extensions[] = { ".sh", NULL};
+char *SHELL_HL_keywords[] = {"if", "fi", "read", "echo", "for", "while", "do", "done", "elif", NULL};
+
 struct editorSyntax HLDB[] = {
     {
         "C",
@@ -132,6 +139,13 @@ struct editorSyntax HLDB[] = {
         "//", "/*", "*/",
         HL_HIGHLIGHT_NUMBERS | HL_HIGHLIGHT_STRINGS
     },
+    {
+        "SHELL",
+        SHELL_HL_extensions,
+        SHELL_HL_keywords,
+        "#", "/*", "*/",
+        HL_HIGHLIGHT_NUMBERS | HL_HIGHLIGHT_STRINGS
+    }
     {
         "SHELL",
         SHELL_HL_extensions,
@@ -506,6 +520,7 @@ void editorYankRow(int at, int lines) {
 
 void editorDelYankRow(int at, int lines) {
     editorYankRow(at, lines);
+    editorSetStatusMessage("Deleted %s lines", lines);    
 
     for(int i = 0; i < lines; i++) {
         editorDelRow(at);
