@@ -20,13 +20,15 @@
 
 /*** DEFINES ***/
 
-#define THOR_VERSION "0.1.0"
+#define THOR_VERSION "0.1.1"
 #define THOR_TAB_STOP 8
 #define THOR_QUIT_TIMES 3
 
 #define CTRL_KEY(k) ((k) & 0x1f) 
 
 enum editorKey {
+    SCROLL_UP = 25,
+    SCROLL_DOWN = 5,
     BACKSPACE = 127,
     ARROW_LEFT = 1000,
     ARROW_RIGHT,
@@ -118,6 +120,10 @@ char *C_HL_keywords[] = {
 
     "int|", "long|", "double|", "float|", "char|", "unsigned|", "signed|", "void|", NULL
 };
+
+char *SHELL_HL_extensions[] = { ".sh", NULL};
+char *SHELL_HL_keywords[] = {"if", "fi", "read", "echo", "for", "while", "do", "done", "elif", NULL};
+
 struct editorSyntax HLDB[] = {
     {
         "C",
@@ -126,6 +132,13 @@ struct editorSyntax HLDB[] = {
         "//", "/*", "*/",
         HL_HIGHLIGHT_NUMBERS | HL_HIGHLIGHT_STRINGS
     },
+    {
+        "SHELL",
+        SHELL_HL_extensions,
+        SHELL_HL_keywords,
+        "#", "/*", "*/",
+        HL_HIGHLIGHT_NUMBERS | HL_HIGHLIGHT_STRINGS
+    }
 };
 
 #define HLDB_ENTRIES (sizeof(HLDB) / sizeof(HLDB[0]))
@@ -177,13 +190,12 @@ int editorReadKey() {
     while ((nread = read(STDIN_FILENO, &c, 1)) != 1) {
         if(nread == -1 && errno != EAGAIN) die("read");
     }
-
+    
     if(c == '\x1b') {
         char seq[3];
 
         if(read(STDIN_FILENO, &seq[0], 1) != 1) return '\x1b';
         if(read(STDIN_FILENO, &seq[1], 1) != 1) return '\x1b';
-
 
         if(seq[0] == '[') {
             if(seq[1] >= '0' && seq[1] <= '9') {
@@ -269,7 +281,8 @@ void editorUpdateSyntax(erow *row) {
 
         if(scs_len && !in_string && !in_comment) {
             if(!strncmp(&row->render[i], scs, scs_len)) {
-                memset(&row->hl[i], HL_COMMENT, row->size - 1);
+                memset(&row->hl[i], HL_COMMENT, row->rsize - i);
+// CHATGPT
                 break;
             }
         }
@@ -486,7 +499,8 @@ void editorYankRow(int at, int lines) {
 
 void editorDelYankRow(int at, int lines) {
     editorYankRow(at, lines);
-    
+    editorSetStatusMessage("Deleted %s lines", lines);    
+
     for(int i = 0; i < lines; i++) {
         editorDelRow(at);
     }  
@@ -1033,6 +1047,26 @@ void editorMoveCursor(int key) {
     }
 }
 
+void editorScrollKey(int key) {
+    switch(key) {
+        case SCROLL_DOWN:
+            if(E.rowoff == E.numrows) return;
+             
+            if(E.cy == E.rowoff) E.cy++;
+            E.rowoff++;
+
+            break;
+        case SCROLL_UP:
+            if(E.rowoff == 0) return;
+                
+            if(E.cy == E.rowoff + E.screenrows - 2) E.cy--;
+            E.rowoff--;
+            
+            break;
+    }
+
+}
+
 void editorCommand() {
     char *command = editorPrompt("Command: :%s", NULL);
 
@@ -1073,15 +1107,20 @@ void editorCommand() {
             editorSave();
         } else if(command[0] == 'q') {
             if(E.dirty && command[1] != '!') {
-                editorSetStatusMessage("Unsaved Changes Detected");
+                editorSetStatusMessage("Unsaved Changes Detected (use ! to override)");
             } else {
                 write(STDOUT_FILENO, "\x1b[2J", 4);
                 write(STDOUT_FILENO, "\x1b[H", 3);
 
                 exit(0);
             } 
-        } else {
-            editorSetStatusMessage("Invalid Syntax %s", command);
+        } else if(strcmp(command, "help") == 0) editorSetStatusMessage(":help quit | :help editor | :help other");
+        else if(strcmp(command, "help quit") == 0) editorSetStatusMessage(":q = quit | :q! = override quit | :w = save | :wq = save and quit");
+        else if(strcmp(command, "help editor") == 0) editorSetStatusMessage(":num = goto line num | / = search");
+        else if(strcmp(command, "help other") == 0) editorSetStatusMessage(":help = shows help | :creds = shows credits");
+        else if(strcmp(command, "creds") == 0) editorSetStatusMessage("Editor Made by OrangeXarot, Named by i._.tram");
+        else {
+            editorSetStatusMessage("Invalid Syntax \":%s\"", command);
         }
     }
 }
@@ -1089,6 +1128,8 @@ void editorCommand() {
 void editorYankPrompt(int at) {
     char *clines = editorPrompt("Yanking: %s", NULL);
     int lines;
+    
+    if(clines == NULL) return;
 
     if(clines[0] == 'y') {
         lines = 1;
@@ -1112,6 +1153,8 @@ void editorYankPrompt(int at) {
 void editorDelPrompt(int at) {    
     char *clines = editorPrompt("Deleting: %s", NULL);
     int lines;
+    
+    if(clines == NULL) return;
 
     if(clines[0] == 'd') {
         lines = 1;
@@ -1194,7 +1237,13 @@ void editorProcessKeypress() {
                 editorInsertChar(' ');
                 editorInsertChar(' ');
                 editorInsertChar(' ');
-                break;    
+                break; 
+   
+            case SCROLL_UP:
+            case SCROLL_DOWN:
+                editorScrollKey(c);
+                break;
+
 
             case CTRL_KEY('l'):
             case '\x1b':
@@ -1261,12 +1310,28 @@ void editorProcessKeypress() {
                         editorMoveCursor(c == PAGE_UP ? ARROW_UP : ARROW_DOWN);
                 }
                 break;
+
             case ARROW_LEFT:
             case ARROW_RIGHT:
             case ARROW_UP:
             case ARROW_DOWN:
                 editorMoveCursor(c);
                 break;
+
+            case SCROLL_UP:
+            case SCROLL_DOWN:
+                editorScrollKey(c);
+                break;
+
+            case HOME_KEY:
+                E.cx = 0;
+                break;
+
+            case END_KEY:
+                if(E.cy < E.numrows)
+                    E.cx = E.row[E.cy].size;
+                break;
+
 
             case 'i':
                 editorChangeMode(INSERT);
@@ -1335,8 +1400,6 @@ int main(int argc, char *argv[]) {
     if(argc >= 2) {
         editorOpen(argv[1]);
     }
-
-    editorSetStatusMessage(":w = save | :q = quit | :number = goto number | / = find");
 
     while(1) {
         editorRefreshScreen();
