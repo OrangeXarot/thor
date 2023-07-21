@@ -30,8 +30,6 @@
 enum editorKey {
     SCROLL_UP = 25,
     SCROLL_DOWN = 5,
-    SCROLL_UP = 25,
-    SCROLL_DOWN = 5,
     BACKSPACE = 127,
     ARROW_LEFT = 1000,
     ARROW_RIGHT,
@@ -127,10 +125,6 @@ char *C_HL_keywords[] = {
 char *SHELL_HL_extensions[] = { ".sh", NULL};
 char *SHELL_HL_keywords[] = {"if", "fi", "read", "echo", "for", "while", "do", "done", "elif", NULL};
 
-
-char *SHELL_HL_extensions[] = { ".sh", NULL};
-char *SHELL_HL_keywords[] = {"if", "fi", "read", "echo", "for", "while", "do", "done", "elif", NULL};
-
 struct editorSyntax HLDB[] = {
     {
         "C",
@@ -139,13 +133,6 @@ struct editorSyntax HLDB[] = {
         "//", "/*", "*/",
         HL_HIGHLIGHT_NUMBERS | HL_HIGHLIGHT_STRINGS
     },
-    {
-        "SHELL",
-        SHELL_HL_extensions,
-        SHELL_HL_keywords,
-        "#", "/*", "*/",
-        HL_HIGHLIGHT_NUMBERS | HL_HIGHLIGHT_STRINGS
-    }
     {
         "SHELL",
         SHELL_HL_extensions,
