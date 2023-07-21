@@ -282,7 +282,6 @@ void editorUpdateSyntax(erow *row) {
         if(scs_len && !in_string && !in_comment) {
             if(!strncmp(&row->render[i], scs, scs_len)) {
                 memset(&row->hl[i], HL_COMMENT, row->rsize - i);
-// CHATGPT
                 break;
             }
         }
@@ -486,7 +485,15 @@ void editorInsertRow(int at, char *s, size_t len) {
 }
 
 void editorYankRow(int at, int lines) {
-    E.cprow = realloc(E.cprow, sizeof(copyrow) * lines);
+    if (E.cprow) {
+        for (int i = 0; i < E.cprow[0].lines; i++) {
+            free(E.cprow[i].chars);
+        }
+        free(E.cprow);
+        E.cprow = NULL;
+    }
+
+    E.cprow = malloc(sizeof(copyrow) * lines);
 
     for(int i = 0; i < lines; i++) {
         E.cprow[i].size = E.row[at + i].size;
@@ -499,7 +506,6 @@ void editorYankRow(int at, int lines) {
 
 void editorDelYankRow(int at, int lines) {
     editorYankRow(at, lines);
-    editorSetStatusMessage("Deleted %s lines", lines);    
 
     for(int i = 0; i < lines; i++) {
         editorDelRow(at);
@@ -989,11 +995,13 @@ char *editorPrompt(char *prompt, void (*callback)(char *, int)) {
             if(callback) callback(buf, c);
             free(buf);
             return NULL;
+            break;
         } else if(c == '\r') {
             if(buflen != 0) {
                 editorSetStatusMessage("");
                 if(callback) callback(buf, c);
-                return buf;
+                //return buf;
+                break;
             }
         } else if(!iscntrl(c) && c < 128) {
             if(buflen == bufsize - 1) {
@@ -1006,6 +1014,8 @@ char *editorPrompt(char *prompt, void (*callback)(char *, int)) {
 
         if(callback) callback(buf, c);
     }
+    free(buf);
+    return NULL;
 }
 
 void editorMoveCursor(int key) {
@@ -1173,6 +1183,7 @@ void editorDelPrompt(int at) {
             editorDelYankRow(at, lines);
         }
     }
+    free(clines);
 }
 
 void editorChangeMode(int mode) {
