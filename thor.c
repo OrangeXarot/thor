@@ -8,6 +8,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <limits.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
@@ -926,8 +927,9 @@ void editorDrawStatusBar(struct abuf *ab) {
     int len = snprintf(status, sizeof(status), 
             " %.20s%s - %d lines", 
             E.filename ? E.filename : "[New File]", E.dirty ? "*" : "", E.numrows); 
-    int rlen = snprintf(rstatus, sizeof(rstatus), "%s | %d,%d ", 
-            E.syntax ? E.syntax->filetype : "no ft", E.cy + 1, E.cx + 1);
+    int perc = round(100 * E.rowoff / (E.numrows - E.screenrows));
+    int rlen = snprintf(rstatus, sizeof(rstatus), "%s | %d%% %d,%d ", 
+            E.syntax ? E.syntax->filetype : "no ft", perc, E.cy + 1, E.cx + 1);
     if(len > E.screencols) len = E.screencols;
     abAppend(ab, status, len);
 
