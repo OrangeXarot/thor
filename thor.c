@@ -21,7 +21,7 @@
 
 /*** DEFINES ***/
 
-#define THOR_VERSION "0.1.1"
+#define THOR_VERSION "0.1.5"
 #define THOR_TAB_STOP 8
 #define THOR_QUIT_TIMES 3
 
@@ -870,6 +870,67 @@ void editorDrawRows(struct abuf *ab) {
                 }
                 while(padding--) abAppend(ab, " ", 1);
                 abAppend(ab, welcome, welcomelen);
+            } else if(E.numrows == 0 && y == (E.screenrows / 3) + 5) {
+                char welcome [80];
+                int welcomelen = snprintf(welcome, sizeof(welcome),
+                        ":help     prints help commands");
+                if(welcomelen > E.screencols) welcomelen = E.screencols;
+                int padding = (E.screencols - welcomelen) / 2;
+                if(padding) {
+                    abAppend(ab, "\x1b[94m", 5);
+                    abAppend(ab, "~", 1);
+                    abAppend(ab, "\x1b[m", 3);
+                    padding--;
+                }
+                while(padding--) abAppend(ab, " ", 1);
+                abAppend(ab, welcome, welcomelen);
+            } else if(E.numrows == 0 && y == (E.screenrows / 3) + 6) {
+                char welcome [80];
+                int welcomelen = snprintf(welcome, sizeof(welcome),
+                        ":q                  exits thor");
+                if(welcomelen > E.screencols) welcomelen = E.screencols;
+                int padding = (E.screencols - welcomelen) / 2;
+                if(padding) {
+                    abAppend(ab, "\x1b[94m", 5);
+                    abAppend(ab, "~", 1);
+                    abAppend(ab, "\x1b[m", 3);
+                    padding--;
+                }
+                while(padding--) abAppend(ab, " ", 1);
+                abAppend(ab, welcome, welcomelen);
+            } else if(E.numrows == 0 && y == (E.screenrows / 3) + 7) {
+                char welcome [80];
+                int welcomelen = snprintf(welcome, sizeof(welcome),
+                        ":w              saves the file");
+                if(welcomelen > E.screencols) welcomelen = E.screencols;
+                int padding = (E.screencols - welcomelen) / 2;
+                if(padding) {
+                    abAppend(ab, "\x1b[94m", 5);
+                    abAppend(ab, "~", 1);
+                    abAppend(ab, "\x1b[m", 3);
+                    padding--;
+                }
+                while(padding--) abAppend(ab, " ", 1);
+                abAppend(ab, welcome, welcomelen);
+            
+            } else if(E.numrows == 0 && y == (E.screenrows / 3) + 8) {
+                char welcome [80];
+                int welcomelen = snprintf(welcome, sizeof(welcome),
+                        ":creds  prints all the credits");
+                if(welcomelen > E.screencols) welcomelen = E.screencols;
+                int padding = (E.screencols - welcomelen) / 2;
+                if(padding) {
+                    abAppend(ab, "\x1b[94m", 5);
+                    abAppend(ab, "~", 1);
+                    abAppend(ab, "\x1b[m", 3);
+                    padding--;
+                }
+                while(padding--) abAppend(ab, " ", 1);
+                abAppend(ab, welcome, welcomelen);
+
+
+
+            
             } else {
                 abAppend(ab, "\x1b[94m", 5);
                 abAppend(ab, "~", 1);
@@ -1143,7 +1204,7 @@ void editorCommand() {
         else if(strcmp(command, "help quit") == 0) editorSetStatusMessage(":q = quit | :q! = override quit | :w = save | :wq = save and quit");
         else if(strcmp(command, "help editor") == 0) editorSetStatusMessage(":num = goto line num | / = search");
         else if(strcmp(command, "help other") == 0) editorSetStatusMessage(":help = shows help | :creds = shows credits");
-        else if(strcmp(command, "creds") == 0) editorSetStatusMessage("Editor Made by OrangeXarot, Named by i._.tram");
+        else if(strcmp(command, "creds") == 0) editorSetStatusMessage("Made by OrangeXarot, Named by i._.tram");
         else {
             editorSetStatusMessage("Invalid Syntax \":%s\"", command);
         }
