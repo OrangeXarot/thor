@@ -21,7 +21,7 @@
 
 /*** DEFINES ***/
 
-#define THOR_VERSION "0.1.5"
+#define THOR_VERSION "0.1.6"
 #define THOR_TAB_STOP 8
 #define THOR_QUIT_TIMES 3
 
@@ -991,7 +991,7 @@ void editorDrawStatusBar(struct abuf *ab) {
     int perc = round(100 * E.rowoff / (E.numrows - E.screenrows));
     if(perc > 100) perc = 100;
     int rlen = snprintf(rstatus, sizeof(rstatus), "%s | %d%% %d,%d ", 
-            E.syntax ? E.syntax->filetype : "no ft", perc, E.cy + 1, E.cx + 1);
+            E.syntax ? E.syntax->filetype : "filetype not detected", perc, E.cy + 1, E.cx + 1);
     if(len > E.screencols) len = E.screencols;
     abAppend(ab, status, len);
 
