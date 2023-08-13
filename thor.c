@@ -123,11 +123,11 @@ char *C_HL_keywords[] = {
     "switch", "if", "while", "for", "break", "continue", "return", "else", 
     "struct", "union", "typedef", "enum", "class", "case",
 
-    "int|", "long|", "double|", "float|", "char|", "unsigned|", "signed|", "void|", NULL
+    "int|", "long|", "double|", "float|", "char|", "unsigned|", "signed|", "void|", "#define|", "#include|", NULL
 };
 
 char *SHELL_HL_extensions[] = { ".sh", NULL};
-char *SHELL_HL_keywords[] = {"if", "fi", "read", "echo", "for", "while", "do", "done", "elif", NULL};
+char *SHELL_HL_keywords[] = {"if", "fi", "read", "echo", "for", "while", "do", "done", "elif", "else", NULL};
 
 struct editorSyntax HLDB[] = {
     {
@@ -928,6 +928,7 @@ void editorDrawStatusBar(struct abuf *ab) {
             " %.20s%s - %d lines", 
             E.filename ? E.filename : "[New File]", E.dirty ? "*" : "", E.numrows); 
     int perc = round(100 * E.rowoff / (E.numrows - E.screenrows));
+    if(perc > 100) perc = 100;
     int rlen = snprintf(rstatus, sizeof(rstatus), "%s | %d%% %d,%d ", 
             E.syntax ? E.syntax->filetype : "no ft", perc, E.cy + 1, E.cx + 1);
     if(len > E.screencols) len = E.screencols;
