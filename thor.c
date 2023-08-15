@@ -988,8 +988,13 @@ void editorDrawStatusBar(struct abuf *ab) {
     int len = snprintf(status, sizeof(status), 
             " %.20s%s - %d lines", 
             E.filename ? E.filename : "[New File]", E.dirty ? "*" : "", E.numrows); 
-    int perc = round(100 * E.rowoff / (E.numrows - E.screenrows));
+
+    int perc;
+    if(E.numrows == E.screenrows) perc = 0;
+    else perc = round(100 * E.rowoff / (E.numrows - E.screenrows));
+
     if(perc > 100) perc = 100;
+
     int rlen = snprintf(rstatus, sizeof(rstatus), "%s | %d%% %d,%d ", 
             E.syntax ? E.syntax->filetype : "filetype not detected", perc, E.cy + 1, E.cx + 1);
     if(len > E.screencols) len = E.screencols;
