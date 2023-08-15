@@ -1408,7 +1408,16 @@ void editorProcessKeypress() {
                         editorMoveCursor(c == PAGE_UP ? ARROW_UP : ARROW_DOWN);
                 }
                 break;
-            
+
+            case 'g':
+                E.cy = 0;
+                editorSetStatusMessage("The Beginning Of Time");
+                break;          
+
+            case 'G':
+                E.cy = E.numrows;
+                editorSetStatusMessage("The End Of Time");
+                break;
 
             case ARROW_LEFT:
             case ARROW_RIGHT:
