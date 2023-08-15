@@ -1426,6 +1426,16 @@ void editorProcessKeypress() {
                 editorMoveCursor(c);
                 break;
 
+            case ',':
+                    for(int i = 0; i < 5;i++)
+                    editorMoveCursor(ARROW_LEFT);
+                break;
+
+            case '.':
+                    for(int i = 0; i < 5;i++)
+                    editorMoveCursor(ARROW_RIGHT);
+                break;
+
             case S_ARROW_LEFT:
             case S_ARROW_RIGHT:
             case S_ARROW_UP:
