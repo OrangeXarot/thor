@@ -1020,6 +1020,9 @@ void editorDrawMessageBar(struct abuf *ab) {
 }
 
 void editorRefreshScreen() {
+    if(getWindowSize(&E.screenrows, &E.screencols) == -1) die("getWindowSize");
+    E.screenrows -= 2;
+
     editorScroll();
 
     struct abuf ab = ABUF_INIT;
