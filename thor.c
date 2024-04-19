@@ -118,16 +118,23 @@ struct editorConfig E;
 
 /*** FILETYPES ***/
 
-char *C_HL_extensions[] = { ".c", ".h", ".cpp", NULL};
+char *C_HL_extensions[] = { ".c", ".h", ".cpp", NULL };
 char *C_HL_keywords[] = {
     "switch", "if", "while", "for", "break", "continue", "return", "else", 
     "struct", "union", "typedef", "enum", "class", "case",
 
-    "int|", "long|", "double|", "float|", "char|", "unsigned|", "signed|", "void|", "#define|", "#include|", NULL
+    "int|", "long|", "double|", "float|", "char|", "unsigned|", "signed|", 
+    "void|", "#define|", "#include|", "NULL|", NULL
 };
 
 char *SHELL_HL_extensions[] = { ".sh", NULL};
-char *SHELL_HL_keywords[] = {"if", "fi", "read", "echo", "for", "while", "do", "done", "elif", "else", NULL};
+char *SHELL_HL_keywords[] = {
+    "if", "fi", "read", "echo", "for", "while", "do", "done", "elif", "else", NULL
+};
+
+char *TXT_HL_extensions[] = { ".txt", NULL };
+char *TXT_HL_keywords[] = { NULL };
+
 
 struct editorSyntax HLDB[] = {
     {
@@ -143,6 +150,13 @@ struct editorSyntax HLDB[] = {
         SHELL_HL_keywords,
         "#", "/*", "*/",
         HL_HIGHLIGHT_NUMBERS | HL_HIGHLIGHT_STRINGS
+    },
+    {
+        "TEXT FILE",
+        TXT_HL_extensions,
+        TXT_HL_keywords,
+        "", "", "",
+        HL_HIGHLIGHT_NUMBERS 
     }
 };
 
