@@ -1038,7 +1038,7 @@ void editorDrawStatusBar(struct abuf *ab) {
         rlen = snprintf(rstatus, sizeof(rstatus), "%s | %s | %d%% %d,%d ", 
             E.user, E.syntax ? E.syntax->filetype : "filetype not detected", perc, E.cy + 1, E.cx + 1);
     } else {
-        rlen = snprintf(rstatus, sizeof(rstatus), "%s | [New File] | %d%% %d,%d ", 
+        rlen = snprintf(rstatus, sizeof(rstatus), "%s | %d%% %d,%d ", 
             E.user, perc, E.cy + 1, E.cx + 1);
     }
 
