@@ -14,9 +14,9 @@ to install run `sudo make clean install`
 * edit mode and insert mode
 * create and edit the line under with o
 * create and edit the line over with O
-* yanking with yy (also works with multiple lines - y5y)
+* yanking with yy (also works with multiple lines - y5)
 * pasting with p
-* deleting with d also works with multiple lines - d5d)
+* deleting with d also works with multiple lines - d5)
 * searching with / (while writing use arrows to scroll words)
 * going to the start of the file with g
 * going to the end of the file with G
