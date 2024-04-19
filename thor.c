@@ -859,9 +859,9 @@ void editorDrawRows(struct abuf *ab) {
             } else if(E.numrows == 0 && y == (E.screenrows / 3) + 2) {
                 char welcome [80];
                 int welcomelen = snprintf(welcome, sizeof(welcome),
-                        "version %s", THOR_VERSION);
+                        "version \x1b[95m%s\x1b[m", THOR_VERSION);
                 if(welcomelen > E.screencols) welcomelen = E.screencols;
-                int padding = (E.screencols - welcomelen) / 2;
+                int padding = (E.screencols - welcomelen + 10) / 2;
                 if(padding) {
                     abAppend(ab, "\x1b[94m", 5);
                     abAppend(ab, "~", 1);
@@ -873,9 +873,9 @@ void editorDrawRows(struct abuf *ab) {
             } else if(E.numrows == 0 && y == (E.screenrows / 3) + 3) {
                 char welcome [80];
                 int welcomelen = snprintf(welcome, sizeof(welcome),
-                        "made by OrangeXarot");
+                        "made by \x1b[92mOrangeXarot\x1b[m");
                 if(welcomelen > E.screencols) welcomelen = E.screencols;
-                int padding = (E.screencols - welcomelen) / 2;
+                int padding = (E.screencols - welcomelen +10) / 2;
                 if(padding) {
                     abAppend(ab, "\x1b[94m", 5);
                     abAppend(ab, "~", 1);
