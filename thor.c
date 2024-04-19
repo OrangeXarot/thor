@@ -21,7 +21,7 @@
 
 /*** DEFINES ***/
 
-#define THOR_VERSION "0.1.6"
+#define THOR_VERSION "0.2.0"
 #define THOR_TAB_STOP 8
 #define THOR_QUIT_TIMES 3
 
@@ -1316,7 +1316,6 @@ void editorProcessKeypress() {
                 break;
 
             case BACKSPACE:
-            case CTRL_KEY('h'):
             case DEL_KEY:
                 if(c == DEL_KEY) editorMoveCursor(ARROW_RIGHT);
                 editorDelChar();
@@ -1403,9 +1402,15 @@ void editorProcessKeypress() {
         switch(c) {
 
             case DEL_KEY:
+            case 'x':
                 editorMoveCursor(ARROW_RIGHT);
                 editorDelChar();
+                editorSetStatusMessage("To lazy to enter insert mode huh?");
                 break;
+
+            case 'X':
+                editorDelChar();
+                break;            
 
             case PAGE_UP:
             case PAGE_DOWN: 
