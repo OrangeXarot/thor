@@ -8,7 +8,7 @@ to compile just run `make`
 to install run `sudo make clean install`
 
 
-## FEATURES
+## Features
 
 ### vim-like gestures (the one I use):
 * edit mode and insert mode
