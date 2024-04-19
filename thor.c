@@ -21,7 +21,7 @@
 
 /*** DEFINES ***/
 
-#define THOR_VERSION "0.2.0"
+#define THOR_VERSION "0.3.0"
 #define THOR_TAB_STOP 8
 #define THOR_QUIT_TIMES 3
 
@@ -108,6 +108,7 @@ struct editorConfig {
     int mode;
     int dirty;
     char *filename;
+    char *user;
     char statusmsg[80];
     time_t statusmsg_time;
     struct editorSyntax *syntax;
@@ -522,7 +523,12 @@ void editorYankRow(int at, int lines) {
         memcpy(E.cprow[i].chars, E.row[at + i].chars, E.row[at + i].size);
     }
     E.cprow[0].lines = lines;
-    editorSetStatusMessage("Yanked %d lines", lines);
+    if (lines == 1)
+        editorSetStatusMessage("Yanked that %d line!", lines);
+    else if (lines == 69) 
+        editorSetStatusMessage("Yanked those nice %d lines!", lines);
+    else 
+        editorSetStatusMessage("Yanked those %d lines!", lines);
 }
 
 void editorDelYankRow(int at, int lines) {
@@ -531,7 +537,12 @@ void editorDelYankRow(int at, int lines) {
     for(int i = 0; i < lines; i++) {
         editorDelRow(at);
     }  
-    editorSetStatusMessage("Deleted %d lines", lines);
+    if (lines == 1)
+        editorSetStatusMessage("Voided from space-time %d line!", lines);
+    else if (lines == 69) 
+        editorSetStatusMessage("Voided from space-time %d lines, not nice!", lines);
+    else 
+        editorSetStatusMessage("Voided from space-time %d lines!", lines);
 }
 
 void editorPasteRows() {
@@ -540,10 +551,20 @@ void editorPasteRows() {
         for(int i = 0; i < E.cprow[0].lines; i++) {
             editorInsertRow(E.cy + 1 + i, E.cprow[i].chars, E.cprow[i].size);
         }
+
         for(int i = 0; i < E.cprow[0].lines; i++) {
             editorMoveCursor(ARROW_DOWN);
         }
-        editorSetStatusMessage("Pasted %d lines", E.cprow[0].lines);
+        
+
+        int lines = E.cprow[0].lines;
+
+        if (lines == 1)
+            editorSetStatusMessage("Pasted with magic %d line!", lines);
+        else if (lines == 69) 
+            editorSetStatusMessage("Pasted with nice magic %d lines!", lines);
+        else 
+            editorSetStatusMessage("Pasted with magic %d lines!", lines);
     }
 }
 
@@ -687,9 +708,9 @@ void editorOpen(char *filename) {
 
 void editorSave() {
     if(E.filename == NULL) {
-        E.filename = editorPrompt("Save as: %s", NULL);
+        E.filename = editorPrompt("Save as '%s'", NULL);
         if(E.filename == NULL) {
-            editorSetStatusMessage("Save Aborted");
+            editorSetStatusMessage("Save aborted, didn't want to save huh?");
             return;
         }
         editorSelectSyntaxHighlight();
@@ -775,7 +796,7 @@ void editorFind() {
     int saved_rowoff = E.rowoff;
 
 
-    char *query = editorPrompt("Search: %s", editorFindCallback);
+    char *query = editorPrompt("Searching '%s'", editorFindCallback);
 
     if(query) {
         free(query);
@@ -1012,8 +1033,15 @@ void editorDrawStatusBar(struct abuf *ab) {
     if(perc > 100) perc = 100;
     else if(perc < 0) perc = 100;
 
-    int rlen = snprintf(rstatus, sizeof(rstatus), "%s | %d%% %d,%d ", 
-            E.syntax ? E.syntax->filetype : "filetype not detected", perc, E.cy + 1, E.cx + 1);
+    int rlen;
+    if (E.filename) {
+        rlen = snprintf(rstatus, sizeof(rstatus), "%s | %s | %d%% %d,%d ", 
+            E.user, E.syntax ? E.syntax->filetype : "filetype not detected", perc, E.cy + 1, E.cx + 1);
+    } else {
+        rlen = snprintf(rstatus, sizeof(rstatus), "%s | [New File] | %d%% %d,%d ", 
+            E.user, perc, E.cy + 1, E.cx + 1);
+    }
+
     if(len > E.screencols) len = E.screencols;
     abAppend(ab, status, len);
 
@@ -1179,7 +1207,7 @@ void editorScrollKey(int key) {
 }
 
 void editorCommand() {
-    char *command = editorPrompt("Command: :%s", NULL);
+    char *command = editorPrompt(":%s", NULL);
 
     if(command){
 
@@ -1194,10 +1222,13 @@ void editorCommand() {
             }
             if(is_number == 1) {
                 int line = atoi(command);
+
+                editorSetStatusMessage("/tp %s %d 0 0", E.user, line);
                 if(line < E.numrows) { 
                     if(line > E.cy) {
                         while(E.cy != line - 1) {
                             editorMoveCursor(ARROW_DOWN);
+        E.rowoff = E.rowoff + E.screenrows + 1;
                         }
                     } else if(line < E.cy) {
                         while(E.cy != line - 1) {
@@ -1231,13 +1262,13 @@ void editorCommand() {
         else if(strcmp(command, "help other") == 0) editorSetStatusMessage(":help = shows help | :creds = shows credits");
         else if(strcmp(command, "creds") == 0) editorSetStatusMessage("Made by OrangeXarot, Named by i._.tram");
         else {
-            editorSetStatusMessage("Invalid Syntax \":%s\"", command);
+            editorSetStatusMessage("What the heck is \":%s\"? Type :help in need of idk, help", command);
         }
     }
 }
 
 void editorYankPrompt(int at) {
-    char *clines = editorPrompt("Yanking: %s", NULL);
+    char *clines = editorPrompt("Yanking %s lines", NULL);
     int lines;
     
     if(clines == NULL) return;
@@ -1262,7 +1293,7 @@ void editorYankPrompt(int at) {
 }
 
 void editorDelPrompt(int at) {    
-    char *clines = editorPrompt("Deleting: %s", NULL);
+    char *clines = editorPrompt("Deleting %s lines", NULL);
     int lines;
     
     if(clines == NULL) return;
@@ -1430,12 +1461,12 @@ void editorProcessKeypress() {
 
             case 'g':
                 E.cy = 0;
-                editorSetStatusMessage("The Beginning Of Time");
+                editorSetStatusMessage("The Beginning of Time");
                 break;          
 
             case 'G':
                 E.cy = E.numrows;
-                editorSetStatusMessage("The End Of Time");
+                editorSetStatusMessage("The End of Time");
                 break;
 
             case ARROW_LEFT:
@@ -1533,6 +1564,7 @@ void initEditor() {
     E.dirty = 0;
     E.mode = COMMAND;
     E.filename = NULL;
+    E.user = getlogin();
     E.statusmsg[0] = '\0';
     E.statusmsg_time = 0;
     E.syntax = NULL;
