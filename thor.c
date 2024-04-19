@@ -341,7 +341,7 @@ void editorUpdateSyntax(erow *row) {
                 prev_sep = 1;
                 continue;
             } else {
-                if(c == '"' || c == '\'') {
+                if(c == '"' || c == '\'' || c == '`') {
                     in_string = c;
                     row->hl[i] = HL_STRING;
                     i++;
