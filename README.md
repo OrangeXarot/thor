@@ -1,5 +1,5 @@
 # thor - the text edithor
-This is a hobby project, nothing serious 
+This is a hobby project following a book, nothing serious 
 
 ## Compile and install
 
